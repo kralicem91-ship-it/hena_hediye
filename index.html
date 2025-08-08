@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Düğünümüze Hoş Geldiniz</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Playfair Display', serif;
+    }
+    body {
+      background: linear-gradient(135deg, #fdf6f0, #fcefe8);
+      color: #5a3e36;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    section {
+      max-width: 700px;
+      background: white;
+      padding: 40px 30px;
+      margin-bottom: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(197, 135, 94, 0.3);
+      text-align: center;
+    }
+    h1 {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #b85c38;
+    }
+    h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      color: #a04a2f;
+    }
+    p {
+      font-size: 1.125rem;
+      line-height: 1.6;
+      color: #6e4b3b;
+    }
+    .upload-form {
+      max-width: 400px;
+      margin: 0 auto;
+      border: 2px dashed #b85c38;
+      padding: 20px;
+      border-radius: 16px;
+      background-color: #fff7f2;
+    }
+    .upload-form input[type="file"] {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #b85c38;
+      border-radius: 8px;
+      background: #fff;
+      cursor: pointer;
+    }
+    .upload-form button {
+      background-color: #b85c38;
+      border: none;
+      padding: 14px 30px;
+      border-radius: 8px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 1.1rem;
+      margin-top: 15px;
+      transition: background-color 0.3s ease;
+    }
+    .upload-form button:hover {
+      background-color: #a04a2f;
+    }
+    #uploadStatus {
+      margin-top: 12px;
+      font-style: italic;
+      color: #7b5038;
+      min-height: 1.2em;
+    }
+    .gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    .gallery-item {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .gallery img, .gallery video {
+      width: 150px;
+      height: 150px;
+      border-radius: 12px;
+      object-fit: cover;
+      box-shadow: 0 6px 14px rgba(184, 92, 56, 0.5);
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+    .gallery img:hover, .gallery video:hover {
+      transform: scale(1.05);
+    }
+    .delete-btn {
+      margin-top: 5px;
+      padding: 5px 10px;
+      font-size: 0.9rem;
+      background-color: #c94f3f;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 999;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+    .modal.open {
+      display: flex;
+    }
+    .modal-content {
+      max-width: 95vw;
+      max-height: 85vh;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+    .modal button, .modal a button {
+      background-color: #b85c38;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 5px;
+    }
+    @media (max-width: 480px) {
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+      section { padding: 30px 20px; }
+      .gallery img, .gallery video { width: 100px; height: 100px; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="welcome">
+    <h1>Düğünümüze Hoş Geldiniz</h1>
+    <p>Elif & Burak - 12 Temmuz 2025<br>Bu sayfadan bize anılarınızı bırakabilirsiniz 💍✨</p>
+  </section>
+
+  <section class="intro">
+    <h2>Tanıtım</h2>
+    <p>Bu sayfa sayesinde çektiğiniz fotoğraf ve videoları bize yükleyebilir, hep birlikte bu özel günün anılarını biriktirebiliriz!</p>
+  </section>
+
+  <section class="upload">
+    <h2>Fotoğraf veya Video Gönder</h2>
+    <div class="upload-form">
+      <form id="uploadForm" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data">
+        <input type="file" name="file" id="fileInput" accept="image/*,video/*" multiple required />
+        <button type="submit">Gönder</button>
+      </form>
+      <p id="uploadStatus">{{ message if message else '' }}</p>
+    </div>
+  </section>
+
+  <section class="gallery-section">
+    <h2>Anılar</h2>
+    <div class="gallery" id="galleryGrid">
+      {% for file in files %}
+        <div class="gallery-item">
+          {% if file.endswith(('.mp4', '.mov', '.avi', '.webm')) %}
+            <video src="{{ url_for('uploaded_file', filename=file) }}" controls></video>
+          {% else %}
+            <img src="{{ url_for('uploaded_file', filename=file) }}" alt="Fotoğraf">
+          {% endif %}
+          <button class="delete-btn" onclick="deleteMedia('{{ file }}')">Sil</button>
+        </div>
+      {% else %}
+        <p>Henüz yüklenmiş bir fotoğraf veya video yok.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Modal -->
+  <div id="mediaModal" class="modal">
+    <div id="modalContentWrapper"></div>
+    <a id="downloadBtn" download target="_blank" style="display:none;">
+      <button>İndir</button>
+    </a>
+    <button onclick="closeModal()">Kapat</button>
+  </div>
+
+  <script>
+    const galleryGrid = document.getElementById('galleryGrid');
+    const modal = document.getElementById('mediaModal');
+    const modalContentWrapper = document.getElementById('modalContentWrapper');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    function openModal(src, type) {
+      modalContentWrapper.innerHTML = '';
+      let modalMedia;
+
+      if (type.startsWith('image/')) {
+        modalMedia = document.createElement('img');
+        modalMedia.style.maxWidth = '95vw';
+        modalMedia.style.maxHeight = '85vh';
+        downloadBtn.style.display = "inline-block";
+        downloadBtn.href = src;
+        downloadBtn.download = "indirilen_fotograf." + src.split('.').pop().split(/\#|\?/)[0];
+      } else if (type.startsWith('video/')) {
+        modalMedia = document.createElement('video');
+        modalMedia.controls = true;
+        modalMedia.autoplay = true;
+        modalMedia.style.maxWidth = '95vw';
+        modalMedia.style.maxHeight = '85vh';
+        downloadBtn.style.display = "inline-block";
+        downloadBtn.href = src;
+        downloadBtn.download = "indirilen_video." + src.split('.').pop().split(/\#|\?/)[0];
+      } else {
+        downloadBtn.style.display = "none";
+        modalContentWrapper.innerHTML = "<p>Bu medya türü görüntülenemiyor.</p>";
+        modal.classList.add('open');
+        return;
+      }
+
+      modalMedia.src = src;
+      modalMedia.className = 'modal-content';
+      modalContentWrapper.appendChild(modalMedia);
+      modal.classList.add('open');
+    }
+
+    function closeModal() {
+      modal.classList.remove('open');
+      modalContentWrapper.innerHTML = '';
+    }
+
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    function setupGalleryClicks() {
+      const mediaElements = galleryGrid.querySelectorAll('img, video');
+      mediaElements.forEach(el => {
+        el.style.cursor = 'pointer';
+
+        let type = '';
+        if (el.tagName.toLowerCase() === 'img') {
+          type = 'image/' + el.src.split('.').pop().toLowerCase();
+        } else if (el.tagName.toLowerCase() === 'video') {
+          type = 'video/' + el.src.split('.').pop().toLowerCase();
+        }
+
+        el.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+
+          if (el.tagName.toLowerCase() === 'video') {
+            el.pause();
+            el.currentTime = 0;
+          }
+
+          openModal(el.src, type);
+        });
+      });
+    }
+
+    function deleteMedia(filename) {
+      const password = prompt("Silmek için şifreyi giriniz:");
+      if (!password) return;
+
+      fetch('/delete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filename, password })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          alert('Dosya başarıyla silindi.');
+          window.location.reload();
+        } else {
+          alert(data.error || 'Silme işlemi başarısız.');
+        }
+      })
+      .catch(() => alert("Bir hata oluştu."));
+    }
+
+    window.onload = () => {
+      setupGalleryClicks();
+    }
+  </script>
+</body>
+</html>
